@@ -3,7 +3,7 @@
 
 from pathlib import Path
 from typing import Callable, Optional, List, Dict
-from pynqutils.build_utils import Board
+#from pynqutils.build_utils import Board
 
 from ..models import Module, Core, ProcSysCore
 
@@ -13,7 +13,7 @@ class BDTarget:
     def __init__(
         self,
         md:Module,
-        board:Board,
+        board,
         ip_libraries:List[str]=[], 
         board_repos:List[str]=[], 
         preset:Dict[str,str]={},
