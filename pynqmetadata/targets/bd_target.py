@@ -6,6 +6,8 @@ from typing import Callable, Optional, List, Dict
 #from pynqutils.build_utils import Board
 
 from ..models import Module, Core, ProcSysCore
+from ..models import ManagerPort, StreamPort, BusConnection
+from ..models import ClkPort, RstPort, ScalarPort
 
 
 class BDTarget:
@@ -38,6 +40,7 @@ class BDTarget:
         self.project_name = project_name
         self._create_project()
         self._populate_cores()
+        self._populate_bus_connections()
 
 
     def str(self)->str:
@@ -95,3 +98,19 @@ update_compile_order -fileset sources_1
             self.t += "] "
         
         self.t +=  f" [get_bd_cells {c.name}]\n"
+
+    def _populate_bus_connections(self)->None:
+        """ Populates connections from Managers->Subordinates.
+        uses the connection automation tcl command """
+        for bus in self.md.busses.values():
+            if isinstance(bus._src_port, ManagerPort):
+                self._add_connection(bus)
+
+    def _add_connection(self, bus:BusConnection)->None:
+        """ Generates the tcl command from the bus driver to the destination """
+        src_name = f"{bus._src_port._parent.name}/{bus._src_port.name}"
+        dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
+        if isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) or isinstance(bus._src_port,ScalarPort):
+            self.t += f"connect_bd_net [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
+        else:
+            self.t += f"connect_bd_intf_net -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"

@@ -19,6 +19,7 @@ from .proc_sys_core import ProcSysCore
 from .register import Register
 from .signal import Signal
 from .stream_port import StreamPort
+from .scalar_port import ScalarPort
 from .subordinate_port import SubordinatePort
 from .ultrascale_proc_sys_core import UltrascaleProcSysCore
 from .vlnv import Vlnv
