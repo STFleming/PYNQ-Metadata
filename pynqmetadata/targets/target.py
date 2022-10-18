@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Callable, Optional
 
-from pynqmetadata import Module
+from ..models import Module
 
 
 def target(md: Module, apply:Callable[[Module], str], file:Optional[Path]=None, instr:Optional[str]=None)->Optional[str]:

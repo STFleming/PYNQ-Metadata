@@ -1,6 +1,6 @@
 from typing import List
 
-from pynqmetadata import Core, Module, ProcSysCore
+from ..models import Core, Module, ProcSysCore
 
 
 def create_bd_project(
@@ -49,5 +49,11 @@ def _add_core(c:Core)->str:
     # if it is a processing system apply the board presets
     if isinstance(c, ProcSysCore):
         s += f'apply_bd_automation -rule xilinx.com:bd_rule:{c.vlnv.name} -config {{apply_board_preset "1"}} [get_bd_cells {c.name}]\n' 
+    s += _apply_core_properties(c)
     return s
 
+def _apply_core_properties(c:Core)->str:
+    """ Applies the parameter space of IP cores """
+    pass
+
+    

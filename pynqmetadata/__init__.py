@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from . import errors
+from . import targets
 from .models.bit_field import BitField
 from .models.block import Block
 from .models.core import Core
