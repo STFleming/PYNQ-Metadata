@@ -90,7 +90,7 @@ update_compile_order -fileset sources_1
                 value = pval.value
                 if pname in self.preset:
                     value = self.preset[pname]
-                self.t += f"CONFIG.{pname} {{\"{value}\"}} "
+                self.t += f"CONFIG.{pname} {{{value}}} "
             else:
                 self.t += f"CONFIG.{pname} "
         
