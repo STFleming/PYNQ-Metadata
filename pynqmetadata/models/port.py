@@ -124,7 +124,7 @@ class Port(MetadataObject):
         for sig in self.signals.values():
             for con in sig._connections.values():
                 if con.parent().name not in r:
-                    r[con.parent().name] = con.parent()
+                    r[con.parent().ref] = con.parent()
         return r
         # return self._destinations
 

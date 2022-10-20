@@ -105,11 +105,23 @@ update_compile_order -fileset sources_1
         for bus in self.md.busses.values():
             if isinstance(bus._src_port, ManagerPort):
                 self._add_connection(bus)
+            if isinstance(bus._src_port, StreamPort):
+                if bus._src_port.driver:
+                    self._add_connection(bus)
+
+                if bus._src_port.vlnv.name == "axis_switch":
+                    if not bus._src_port.driver:
+                        self._add_connection(bus)
+
+            if isinstance(bus._src_port, ScalarPort) or isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) :
+                if bus._src_port.driver:
+                    self._add_connection(bus)
 
     def _add_connection(self, bus:BusConnection)->None:
         """ Generates the tcl command from the bus driver to the destination """
         src_name = f"{bus._src_port._parent.name}/{bus._src_port.name}"
         dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
+        con_str = ""
         if isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) or isinstance(bus._src_port,ScalarPort):
             self.t += f"connect_bd_net [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
         else:
