@@ -126,7 +126,6 @@ update_compile_order -fileset sources_1
         """ Generates the tcl command from the bus driver to the destination """
         src_name = f"{bus._src_port._parent.name}/{bus._src_port.name}"
         dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
-        con_str = ""
         if isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) or isinstance(bus._src_port,ScalarPort):
             self.t += f"connect_bd_net [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
         else:
@@ -135,7 +134,7 @@ update_compile_order -fileset sources_1
     def _resolve_addressing(self, bus:BusConnection)->None:
         """ For all the memory mapped peripherals, resolve their address space """
         if not isinstance(bus._src_port, ManagerPort):
-            raise RuntimeError(f"Cannot resolve addressing on non-manager port {con._src_port.ref}")
+            raise RuntimeError(f"Cannot resolve addressing on non-manager port {bus._src_port.ref}")
         else:
             for mem_name, mem in bus._src_port.addrmap.items():
                 self.t += "assign_bd_address -target_address_space "
