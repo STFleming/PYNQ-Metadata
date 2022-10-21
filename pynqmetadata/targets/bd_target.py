@@ -8,6 +8,7 @@ from typing import Callable, Optional, List, Dict
 from ..models import Module, Core, ProcSysCore
 from ..models import ManagerPort, StreamPort, BusConnection
 from ..models import ClkPort, RstPort, ScalarPort
+from ..models import ManagerPort
 
 
 class BDTarget:
@@ -41,6 +42,10 @@ class BDTarget:
         self._create_project()
         self._populate_cores()
         self._populate_bus_connections()
+
+        for bus in self.md.busses.values():
+            if isinstance(bus._src_port, ManagerPort):
+                self._resolve_addressing(bus)
 
 
     def str(self)->str:
@@ -126,3 +131,29 @@ update_compile_order -fileset sources_1
             self.t += f"connect_bd_net [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
         else:
             self.t += f"connect_bd_intf_net -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"
+
+    def _resolve_addressing(self, bus:BusConnection)->None:
+        """ For all the memory mapped peripherals, resolve their address space """
+        if not isinstance(bus._src_port, ManagerPort):
+            raise RuntimeError(f"Cannot resolve addressing on non-manager port {con._src_port.ref}")
+        else:
+            for mem_name, mem in bus._src_port.addrmap.items():
+                self.t += "assign_bd_address -target_address_space "
+                if isinstance(bus._src_port._parent, ProcSysCore):
+                    self.t += f"/{bus._src_port._parent.name}/Data"
+                elif bus._src_port._parent.vlnv.name == "axi_dma" or bus._src_port._parent.vlnv.name == "axi_vdma":
+                    label = bus._src_port.name.split("_")[-1]
+                    self.t += f"/{bus._src_port._parent.name}/Data_{label}" 
+                else:
+                    self.t += f"/{bus._src_port._parent.name}/Data_{bus._src_port.name}"
+
+                self.t += f" [get_bd_addr_segs "
+
+                subport = bus._src_port._addrmap_obj[mem_name]
+                subport_parent = subport._parent
+                if isinstance(subport_parent, ProcSysCore):
+                    internal_portname = subport_parent.subord_port_to_internal_name(subport)
+                    self.t += f"{subport_parent.name}/{internal_portname}/{mem['block']}"
+                else:
+                    self.t += f"{subport_parent.name}/{subport_parent.name}/{mem['block']}"
+                self.t += "]\n"

@@ -6,6 +6,7 @@ from typing import Dict, List
 
 from ..errors import ParameterNotFound, UnexpectedMetadataObjectType
 from .core import Core
+from .subordinate_port import SubordinatePort
 from .signal import Signal
 
 @dataclass(repr=False)
@@ -125,3 +126,28 @@ class ProcSysCore(Core):
                 for i in range(num):
                     raw_map.append(base + i)
         return raw_map
+
+    def subord_port_to_internal_name(self, subord:SubordinatePort)->str:
+        """
+        From a subordinate port return the internal naming for that port within
+        the processing system (they are different)
+        """
+        if subord.name == "S_AXI_HPC0_FPD":
+            return "SAXIGP0"
+        if subord.name == "S_AXI_HPC1_FPD":
+            return "SAXIGP1"
+        if subord.name == "S_AXI_HP0_FPD":
+            return "SAXIGP2"
+        if subord.name == "S_AXI_HP1_FPD":
+            return "SAXIGP3"
+        if subord.name == "S_AXI_HP2_FPD":
+            return "SAXIGP4"
+        if subord.name == "S_AXI_HP3_FPD":
+            return "SAXIGP5"
+        if subord.name == "S_AXI_LPD":
+            return "SAXIGP6"
+        if subord.name == "S_AXI_ACE_FPD":
+            return "SAXIACE"
+        if subord.name == "S_AXI_ACP_FPD":
+            return "SAXIACP"
+        return subord.name
