@@ -18,7 +18,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest-cov codecov
-        pip install pynq ipython
+        pip install ipython
         pip install pytest 
         pip install deepdiff 
     - name: Lint with flake
