@@ -28,7 +28,7 @@ jobs:
         flake8 pynqmetadata --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Install Package
       run: |
-        pip install -e .
+        pip install -e . --no-build-isolation
         pip install pynqutils 
     - name: Test with pytest
       run: |
