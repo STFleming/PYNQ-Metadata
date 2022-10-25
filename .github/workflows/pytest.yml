@@ -28,7 +28,7 @@ jobs:
     - name: Install Package
       run: |
         pip install -e .
-        pip install git+https://github.com/Xilinx/PYNQ-Utils
+        pip install pynqutils 
     - name: Test with pytest
       run: |
         pytest --doctest-modules --junitxml=junit/test-results-python3.10.xml
