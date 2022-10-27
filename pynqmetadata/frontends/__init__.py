@@ -4,4 +4,3 @@
 from .hwh_frontend import HwhFrontend
 from .json_frontend import JsonFrontend
 from .metadata import Metadata
-from . import visualisations
