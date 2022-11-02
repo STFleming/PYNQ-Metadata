@@ -20,14 +20,15 @@ class XsaTarget(BDTarget):
         board_repos:List[str]=[],
         preset:Dict[str,str]={},
         design_name:str = "design_1",
-        project_name:str = "project_1"
+        project_name:str = "project_1",
+        tool_version:str = "2022.1"
 
     ) -> None:
         """ 
             From a metadata object generate a build script that will produce an
             equivalent XSA from Vivado
         """
-        super().__init__(md=md, board=board, ip_libraries=ip_libraries, board_repos=board_repos, preset=preset, design_name=design_name, project_name=project_name)
+        super().__init__(md=md, board=board, ip_libraries=ip_libraries, board_repos=board_repos, preset=preset, design_name=design_name, project_name=project_name, tool_version=tool_version)
         self.t += f"set_property synth_checkpoint_mode None [get_files  ./{self.project_name}.srcs/sources_1/bd/{self.design_name}/{self.design_name}.bd]\n"
         self.t += f"generate_target all [get_files ./{self.project_name}.srcs/sources_1/bd/{self.design_name}/{self.design_name}.bd]\n"
         self.t += f"export_ip_user_files -of_objects [get_files ./{self.project_name}.srcs/sources_1/bd/{self.design_name}/{self.design_name}.bd] -no_script -sync -force -quiet\n"

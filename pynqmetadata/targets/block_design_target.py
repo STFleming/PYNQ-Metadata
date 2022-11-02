@@ -8,6 +8,7 @@ def create_bd_project(
                     board:str, 
                     design_name:str = "design_1",
                     project_name:str = "project_1",
+                    tool_version:str = "2022.1",
                     boardrepo:List[str]=[], 
                     ip_libraries:List[str]=[]
                 )->str:

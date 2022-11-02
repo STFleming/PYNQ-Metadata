@@ -9,6 +9,7 @@ from ..models import ManagerPort, StreamPort, BusConnection
 from ..models import ClkPort, RstPort, ScalarPort
 from ..models import ManagerPort
 
+from .tool_version_pass import tool_version_pass
 
 class BDTarget:
 
@@ -20,7 +21,8 @@ class BDTarget:
         board_repos:List[str]=[], 
         preset:Dict[str,str]={},
         design_name:str = "design_1",
-        project_name:str = "project_1"
+        project_name:str = "project_1",
+        tool_version:str = "2022.1"
     ) -> None:
         """ 
             From a module create the tcl string that can regenerate the block diagram of the system.
@@ -31,13 +33,15 @@ class BDTarget:
              * preset : a list of board specific presets that need to be overwritten when generating the parameters
         """
         self.t = "# Auto-generated build script from pynqmetadata\n"
-        self.md = md
+        self.tool_version = tool_version
+        self.md = tool_version_pass(md=md, tool_version=tool_version)
         self.board = board
         self.preset = board.get_preset_dict()
         self.ip_libraries = ip_libraries
         self.board_repos = board_repos
         self.design_name = design_name
         self.project_name = project_name
+        self.tool_version = tool_version
         self._create_project()
         self._populate_cores()
         self._populate_bus_connections()

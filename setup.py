@@ -63,6 +63,7 @@ extend_pynq_metadata_package([
         'pynqmetadata/frontends/visualisations',
         'pynqmetadata/frontends/visualisations/lib',
         'pynqmetadata/version.txt',
+        'pynqmetadata/targets/',
         'pynqmetadata/tests'
     ])
 
