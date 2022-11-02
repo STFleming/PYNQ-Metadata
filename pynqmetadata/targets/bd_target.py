@@ -3,7 +3,6 @@
 
 from pathlib import Path
 from typing import Callable, Optional, List, Dict
-#from pynqutils.build_utils import Board
 
 from ..models import Module, Core, ProcSysCore
 from ..models import ManagerPort, StreamPort, BusConnection
@@ -46,6 +45,8 @@ class BDTarget:
         for bus in self.md.busses.values():
             if isinstance(bus._src_port, ManagerPort):
                 self._resolve_addressing(bus)
+
+        self._save_and_make_wrapper()
 
 
     def str(self)->str:
@@ -156,3 +157,13 @@ update_compile_order -fileset sources_1
                 else:
                     self.t += f"{subport_parent.name}/{subport_parent.name}/{mem['block']}"
                 self.t += "]\n"
+
+    def _save_and_make_wrapper(self):
+        """ Closes up the block diagram and creates the HDL wrapper """
+        self.t += "update_compile_order -fileset sources_1\n"
+        self.t += "save_bd_design\n"
+
+        self.t += f"make_wrapper -files [get_files ./{self.project_name}.srcs/sources_1/bd/{self.design_name}/{self.design_name}.bd] -top\n"
+        self.t += f"add_files -norecurse ./{self.project_name}.gen/sources_1/bd/{self.design_name}/hdl/{self.design_name}_wrapper.v\n"
+        return
+
