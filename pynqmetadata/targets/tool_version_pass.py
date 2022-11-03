@@ -33,6 +33,6 @@ def tool_version_pass(md:Module, tool_version="2022.1")->Module:
                 block.vlnv = new_vlnv
         else:
             if isinstance(block, Module):
-                tool_version_target(md=block, tool_version=tool_version)
+                tool_version_pass(md=block, tool_version=tool_version)
 
     return md
