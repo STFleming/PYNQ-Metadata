@@ -145,14 +145,16 @@ update_compile_order -fileset sources_1
             raise RuntimeError(f"Cannot resolve addressing on non-manager port {bus._src_port.ref}")
         else:
             for mem_name, mem in bus._src_port.addrmap.items():
-                self.t += "assign_bd_address -target_address_space "
-                if isinstance(bus._src_port._parent, ProcSysCore):
-                    self.t += f"/{bus._src_port._parent.name}/Data"
-                elif bus._src_port._parent.vlnv.name == "axi_dma" or bus._src_port._parent.vlnv.name == "axi_vdma":
-                    label = bus._src_port.name.split("_")[-1]
-                    self.t += f"/{bus._src_port._parent.name}/Data_{label}" 
-                else:
-                    self.t += f"/{bus._src_port._parent.name}/Data_{bus._src_port.name}"
+                #self.t += "assign_bd_address -target_address_space "
+                #if isinstance(bus._src_port._parent, ProcSysCore):
+                #    self.t += f"/{bus._src_port._parent.name}/Data"
+                #elif bus._src_port._parent.vlnv.name == "axi_dma" or bus._src_port._parent.vlnv.name == "axi_vdma":
+                #    label = bus._src_port.name.split("_")[-1]
+                #    self.t += f"/{bus._src_port._parent.name}/Data_{label}" 
+                #else:
+                #    self.t += f"/{bus._src_port._parent.name}/Data_{bus._src_port.name}"
+
+                self.t += "assign_bd_address "
 
                 self.t += f" [get_bd_addr_segs "
 
