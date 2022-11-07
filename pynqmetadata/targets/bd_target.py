@@ -132,9 +132,12 @@ update_compile_order -fileset sources_1
         src_name = f"{bus._src_port._parent.name}/{bus._src_port.name}"
         dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
         if isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) or isinstance(bus._src_port,ScalarPort):
-            self.t += f"connect_bd_net [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
+            for d in bus._src_port.sig()._connections.values():
+                dst_sig = d
+                dst_name = f"{dst_sig._parent._parent.name}/{dst_sig.name}"
+                self.t += f"connect_bd_net -quiet [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
         else:
-            self.t += f"connect_bd_intf_net -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"
+            self.t += f"connect_bd_intf_net -quiet -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"
 
     def _resolve_addressing(self, bus:BusConnection)->None:
         """ For all the memory mapped peripherals, resolve their address space """
