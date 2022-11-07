@@ -41,9 +41,3 @@ class XsaTarget(BDTarget):
 
         self.t += f"write_hw_platform -fixed -include_bit -force -file {self.board.name}_{self.md.name}.xsa"
 
-    def generate(self, tcl_path='gen.tcl'):
-        """ Generates the tcl into a file """
-        gen_tcl = open(tcl_path, "w")
-        gen_tcl.write(self.str())
-        gen_tcl.close()
-

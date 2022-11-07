@@ -171,3 +171,8 @@ update_compile_order -fileset sources_1
         self.t += f"add_files -norecurse ./{self.project_name}.gen/sources_1/bd/{self.design_name}/hdl/{self.design_name}_wrapper.v\n"
         return
 
+    def generate(self, tcl_path='get.tcl')->None:
+        """ saves the generated tcl to a file """
+        gen_tcl = open(tcl_path, "w")
+        gen_tcl.write(self.str())
+        gen_tcl.close()
