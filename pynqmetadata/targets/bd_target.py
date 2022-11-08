@@ -8,6 +8,7 @@ from ..models import Module, Core, ProcSysCore
 from ..models import ManagerPort, StreamPort, BusConnection
 from ..models import ClkPort, RstPort, ScalarPort
 from ..models import ManagerPort
+from ..models import Vlnv
 
 from .tool_version_pass import tool_version_pass
 
@@ -104,7 +105,13 @@ update_compile_order -fileset sources_1
                     mode = "MASTER"
                 else:
                     mode = "SLAVE"
-                self.t += f"create_bd_intf_port -mode {mode} -vlnv {ext_p.vlnv.str} {ext_p.name}\n" 
+
+                if ext_p.vlnv.vendor=="xilinx.com" and ext_p.vlnv.library =="interface":
+                    itf_name = f"{ext_p.vlnv.name}_rtl"
+                else:
+                    itf_name = f"{ext_p.vlnv.name}"
+                new_vlnv = Vlnv(vendor=ext_p.vlnv.vendor, library=ext_p.vlnv.library, name=itf_name, version=ext_p.vlnv.version)
+                self.t += f"create_bd_intf_port -mode {mode} -vlnv {new_vlnv.str} {ext_p.name}\n" 
 
     def _add_core(self, c:Core)->None:
         """ generates the tcl command to instantiate a core """
@@ -136,7 +143,7 @@ update_compile_order -fileset sources_1
         for bus in self.md.busses.values():
             if isinstance(bus._src_port, ManagerPort):
                 self._add_connection(bus)
-            if isinstance(bus._src_port, StreamPort):
+            elif isinstance(bus._src_port, StreamPort):
                 if bus._src_port.driver:
                     self._add_connection(bus)
 
@@ -144,18 +151,32 @@ update_compile_order -fileset sources_1
                     if not bus._src_port.driver:
                         self._add_connection(bus)
 
-            if isinstance(bus._src_port, ScalarPort) or isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) :
+            elif isinstance(bus._src_port, ScalarPort) or isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) :
+                if bus._src_port.driver:
+                    self._add_connection(bus)
+            else:
                 if bus._src_port.driver:
                     self._add_connection(bus)
 
     def _add_connection(self, bus:BusConnection)->None:
         """ Generates the tcl command from the bus driver to the destination """
-        src_name = f"{bus._src_port._parent.name}/{bus._src_port.name}"
-        dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
+        if isinstance(bus._src_port._parent, Module): 
+            src_name = f"{bus._src_port.name}"
+        else:
+            src_name = f"{bus._src_port._parent.name}/{bus._src_port.name}"
+
+        if isinstance(bus._dst_port._parent, Module): 
+            dst_name = f"{bus._dst_port.name}"
+        else:
+            dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
+
         if isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) or isinstance(bus._src_port,ScalarPort):
             for d in bus._src_port.sig()._connections.values():
                 dst_sig = d
-                dst_name = f"{dst_sig._parent._parent.name}/{dst_sig.name}"
+                if isinstance(dst_sig._parent._parent, Module):
+                    dst_name = f"{dst_sig.name}"
+                else:
+                    dst_name = f"{dst_sig._parent._parent.name}/{dst_sig.name}"
                 self.t += f"connect_bd_net -quiet [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
         else:
             self.t += f"connect_bd_intf_net -quiet -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"
