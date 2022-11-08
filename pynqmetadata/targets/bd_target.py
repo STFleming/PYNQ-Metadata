@@ -44,6 +44,7 @@ class BDTarget:
         self.tool_version = tool_version
         self._create_project()
         self._populate_cores()
+        self._populate_external_ports()
         self._populate_bus_connections()
 
         for bus in self.md.busses.values():
@@ -84,6 +85,26 @@ update_compile_order -fileset sources_1
         for c in self.md.blocks.values():
             if isinstance(c, Core):
                 self._add_core(c)
+
+    def _populate_external_ports(self)->None:
+        """ Walks over all the external ports in the design and
+        generates the tcl command for them """
+        for ext_p in self.md.ports.values():
+            if ext_p.vlnv is None:
+                if not ext_p.driver:
+                    direction="I"
+                else:
+                    direction="O"
+                if isinstance(ext_p, RstPort):
+                    self.t += f"create_bd_port -dir {direction} -from 0 -to {ext_p.width} -type rst {ext_p.name}\n"
+                elif isinstance(ext_p, ScalarPort):
+                    self.t += f"create_bd_port -dir {direction} -from 0 -to {ext_p.width} {ext_p.name}\n"
+            else:
+                if not ext_p.driver:
+                    mode = "MASTER"
+                else:
+                    mode = "SLAVE"
+                self.t += f"create_bd_intf_port -mode {mode} -vlnv {ext_p.vlnv.str} {ext_p.name}\n" 
 
     def _add_core(self, c:Core)->None:
         """ generates the tcl command to instantiate a core """

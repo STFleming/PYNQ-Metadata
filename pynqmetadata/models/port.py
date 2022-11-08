@@ -33,6 +33,7 @@ class Port(MetadataObject):
     signals: Dict[str, Signal] = field(default_factory=lambda: ({}))
     parameters: Dict[str, Parameter] = field(default_factory=lambda: ({}))
     external: bool = False
+    driver: bool = False
     _destinations: Dict[str, Port] = field(default_factory=lambda: ({}))
 
     def _merge(

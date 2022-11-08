@@ -146,7 +146,7 @@ def port_factory(bus_itf: ElementTree) -> Port:
         port = StreamPort(name=name, vlnv=vlnv, driver=determine_if_bus_driver(btype))
 
     else:
-        port = Port(name=name, vlnv=vlnv)
+        port = Port(name=name, vlnv=vlnv, driver=determine_if_bus_driver(btype))
 
     # Populate the parameters
     for param in bus_itf.iter("PARAMETER"):
