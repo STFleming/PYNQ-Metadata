@@ -142,7 +142,7 @@ def _port_factory(j: Dict) -> Port:
         port = RstPort(name=j["name"], vlnv=vlnv, driver=j["driver"])
 
     else:
-        port = Port(name=j["name"], vlnv=vlnv, external=j["external"])
+        port = Port(name=j["name"], vlnv=vlnv, external=j["external"], driver=j["driver"])
 
     for p in j["parameters"].values():
         if "value" in p:
