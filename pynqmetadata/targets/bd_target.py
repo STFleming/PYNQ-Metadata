@@ -10,6 +10,7 @@ from ..models import ManagerPort, StreamPort, BusConnection
 from ..models import ClkPort, RstPort, ScalarPort
 from ..models import ManagerPort
 from ..models import Vlnv
+from ..models import Parameter
 
 from .tool_version_pass import tool_version_pass
 
@@ -132,18 +133,24 @@ update_compile_order -fileset sources_1
             self.t += f'apply_bd_automation -rule xilinx.com:bd_rule:{c.vlnv.name} -config {{apply_board_preset "1"}} [get_bd_cells {c.name}]\n' 
         self._apply_core_properties_non_batch(c)
 
+    def _apply_property(self, p:Parameter, c:Core)->None:
+        """ Applies an individual parameter to the tcl script """
+        if p.value != "none" and p.value != "undef":
+            self.t += f"set_property -dict [ list CONFIG.{p.name} {{{p.value}}} ] [get_bd_cell {c.name}]\n"
+        else:
+            #self.t += f"set_property -name CONFIG.{p.name} [get_bd_cell {c.name}]\n"
+            pass
+
     def _apply_core_properties_non_batch(self, c:Core)->None:
         """ Applies all the core properties 1 by 1, this is not as fast as the list based method
         but seems to be more reliable """
-        for pname,pval in c.parameters.items():
-            if pname in self._ps_presets:
-                if pval != "none" and pval != "undef":
-                    value = pval.value
-                    #if pname in self.preset:
-                    #    value = self.preset[pname]
-                    self.t += f"set_property -dict [ list CONFIG.{pname} {{{value}}} ] [get_bd_cell {c.name}]\n"
-                else:
-                    self.t += f"set_property -dict [ list CONFIG.{pname} ] [get_bd_cell {c.name}]\n"
+        if isinstance(c, ProcSysCore):
+            for pname,pval in c.parameters.items():
+                if pname in self._ps_presets:
+                    self._apply_property(pval, c)
+        else:
+            for pval in c.parameters.values():
+                self._apply_property(pval, c)
 
     def _apply_core_properties(self, c:Core)->None:
         """ Walks the parameter space of a core and instantiates the properties for it. """
