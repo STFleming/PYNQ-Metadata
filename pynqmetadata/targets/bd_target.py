@@ -3,6 +3,7 @@
 
 from pathlib import Path
 from typing import Callable, Optional, List, Dict
+import json
 
 from ..models import Module, Core, ProcSysCore
 from ..models import ManagerPort, StreamPort, BusConnection
@@ -33,6 +34,16 @@ class BDTarget:
              * board_repos : a list of directories where the board metadata is kept on the target build machine
              * preset : a list of board specific presets that need to be overwritten when generating the parameters
         """
+
+        # Try and load the presets to overload the default PS presets
+        try:
+            preset_file_loc = Path(__file__).parent.resolve() / "ps_presets.json"
+            preset_file = open(preset_file_loc, "r") 
+            self._ps_presets = set(json.loads(preset_file.read())) 
+        except:
+            preset_file_loc = Path(__file__).parent.resolve() / "ps_presets.json"
+            raise RuntimeError(f"Unable to load the PS preset parameters file {preset_file_loc} to know which default PS parameters to overload in the design")
+
         self.t = "# Auto-generated build script from pynqmetadata\n"
         self.tool_version = tool_version
         self.md = tool_version_pass(md=md, tool_version=tool_version)
@@ -47,6 +58,7 @@ class BDTarget:
         self._populate_cores()
         self._populate_external_ports()
         self._populate_bus_connections()
+
 
         for bus in self.md.busses.values():
             if isinstance(bus._src_port, ManagerPort):
@@ -97,9 +109,9 @@ update_compile_order -fileset sources_1
                 else:
                     direction="O"
                 if isinstance(ext_p, RstPort):
-                    self.t += f"create_bd_port -dir {direction} -from 0 -to {ext_p.width} -type rst {ext_p.name}\n"
+                    self.t += f"create_bd_port -dir {direction} -from {ext_p.width-1} -to 0 -type rst {ext_p.name}\n"
                 elif isinstance(ext_p, ScalarPort):
-                    self.t += f"create_bd_port -dir {direction} -from 0 -to {ext_p.width} {ext_p.name}\n"
+                    self.t += f"create_bd_port -dir {direction} -from {ext_p.width-1} -to 0 {ext_p.name}\n"
             else:
                 if not ext_p.driver:
                     mode = "MASTER"
@@ -118,7 +130,20 @@ update_compile_order -fileset sources_1
         self.t += f"create_bd_cell -type ip -vlnv {c.vlnv.str} {c.name}\n"
         if isinstance(c, ProcSysCore):
             self.t += f'apply_bd_automation -rule xilinx.com:bd_rule:{c.vlnv.name} -config {{apply_board_preset "1"}} [get_bd_cells {c.name}]\n' 
-        self._apply_core_properties(c)
+        self._apply_core_properties_non_batch(c)
+
+    def _apply_core_properties_non_batch(self, c:Core)->None:
+        """ Applies all the core properties 1 by 1, this is not as fast as the list based method
+        but seems to be more reliable """
+        for pname,pval in c.parameters.items():
+            if pname in self._ps_presets:
+                if pval != "none" and pval != "undef":
+                    value = pval.value
+                    #if pname in self.preset:
+                    #    value = self.preset[pname]
+                    self.t += f"set_property -dict [ list CONFIG.{pname} {{{value}}} ] [get_bd_cell {c.name}]\n"
+                else:
+                    self.t += f"set_property -dict [ list CONFIG.{pname} ] [get_bd_cell {c.name}]\n"
 
     def _apply_core_properties(self, c:Core)->None:
         """ Walks the parameter space of a core and instantiates the properties for it. """
@@ -171,15 +196,16 @@ update_compile_order -fileset sources_1
             dst_name = f"{bus._dst_port._parent.name}/{bus._dst_port.name}"
 
         if isinstance(bus._src_port, ClkPort) or isinstance(bus._src_port, RstPort) or isinstance(bus._src_port,ScalarPort):
-            for d in bus._src_port.sig()._connections.values():
-                dst_sig = d
-                if isinstance(dst_sig._parent._parent, Module):
-                    dst_name = f"{dst_sig.name}"
-                else:
-                    dst_name = f"{dst_sig._parent._parent.name}/{dst_sig.name}"
-                self.t += f"connect_bd_net -quiet [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
+            #for d in bus._src_port.sig()._connections.values():
+            #    dst_sig = d
+            #    if isinstance(dst_sig._parent._parent, Module):
+            #        dst_name = f"{dst_sig.name}"
+            #    else:
+            #        dst_name = f"{dst_sig._parent._parent.name}/{dst_sig.name}"
+            #    self.t += f"connect_bd_net -quiet [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
+            self.t += f"connect_bd_net [get_bd_pins {src_name}] [get_bd_pins {dst_name}]\n"
         else:
-            self.t += f"connect_bd_intf_net -quiet -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"
+            self.t += f"connect_bd_intf_net -boundary_type upper [get_bd_intf_pins {src_name}] [get_bd_intf_pins {dst_name}]\n"
 
     def _resolve_addressing(self, bus:BusConnection)->None:
         """ For all the memory mapped peripherals, resolve their address space """
