@@ -164,9 +164,10 @@ class Signal(MetadataObject):
                 self._get_root().refresh()
 
         else:
-            raise PortSignalNotFound(
-                f"Could not disconnect {sig.ref} from {self.ref} as pre-existing connection could not be found"
-            )
+            pass #There is nothing to remove
+            #raise PortSignalNotFound(
+            #    f"Could not disconnect {sig.ref} from {self.ref} as pre-existing connection could not be found"
+            #)
 
     def connections(self) -> Dict[str, Signal]:
         """
