@@ -58,6 +58,26 @@ class Hierarchy(MetadataObject):
                 f"Checking {item.ref} exists in {self.ref} but did not expect type {type(item)}"
             )
 
+    def remove(self):
+        """ Removes this hierarchy from the design. 
+            WARNING: this will remove the actual blocks/modules associated with this hierarchy,
+            not just the hierarchy structure.
+        """ 
+
+        for c in self.core_ref:
+            self._core_obj[c].remove()
+        del self.core_ref
+        del self._core_obj
+
+        for h in self.hierarchies_ref:
+            self._hierarchies_obj[h].remove()
+        del self.hierarchies_ref
+        del self._hierarchies_obj
+
+        if isinstance(self._parent, Hierarchy):
+            del self._parent._hierarchies_obj[self.name]
+            del self._parent.hierarchies_ref[self.name]
+
     def add(self, item: MetadataObject) -> None:
         """
         Adds either a sub-hierarchy or a block to this hierarchy model
