@@ -84,9 +84,10 @@ set_property board_part {self.board.board_typestring()} [current_project]
 """
 
         # Add all the ip libraries
-        for lib in self.ip_libraries:
-            self.t += f"set_property ip_repo_paths {lib} [current_project]\n"
-        self.t += f"update_ip_catalog\n"
+        if self.ip_libraries:
+            lib = " ".join(self.ip_libraries)
+            self.t += f"set_property ip_repo_paths \"{lib}\" [current_project]\n"
+            self.t += f"update_ip_catalog\n"
 
         self.t += f"""
 create_bd_design {self.design_name}
